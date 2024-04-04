@@ -18,7 +18,6 @@ impl Auth {
     }
 
     pub fn validate(&self, received_username: &str, received_password: &str) -> Result<bool, ()> {
-        println!("received_username: {}", received_username);
         if let Some(expected_password) = self.credentials.get(received_username) {
             if received_password == expected_password {
                 Ok(true)
