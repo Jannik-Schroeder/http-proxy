@@ -17,18 +17,18 @@ use crate::auth::Auth;
 pub async fn start_proxy(
     listen_addr: SocketAddr,
     (ipv6, prefix_len): (Ipv6Addr, u8),
-    auth: Auth, // Dies ist jetzt eine Auth-Instanz
+    auth: Auth,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let auth_arc = Arc::new(auth); // Erstellen einer Arc-Instanz für auth
+    let auth_arc = Arc::new(auth);
 
     let make_service = make_service_fn(move |_: &AddrStream| {
-        let auth_arc = Arc::clone(&auth_arc); // Klonen der Arc-Instanz
+        let auth_arc = Arc::clone(&auth_arc);
         async move {
             Ok::<_, hyper::Error>(service_fn(move |req| {
                 Proxy {
                     ipv6: ipv6.into(),
                     prefix_len,
-                    auth: Arc::clone(&auth_arc), // Verwenden Sie die geklonte Arc-Instanz
+                    auth: Arc::clone(&auth_arc),
                 }
                     .proxy(req)
             }))

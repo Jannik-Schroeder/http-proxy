@@ -1,6 +1,5 @@
 use std::env;
 use std::collections::HashMap;
-use bcrypt::{verify, BcryptError};
 
 #[derive(Clone)]
 pub struct Auth {
@@ -18,9 +17,14 @@ impl Auth {
         Ok(Auth { credentials })
     }
 
-    pub fn validate(&self, received_username: &str, received_password: &str) -> Result<bool, BcryptError> {
+    pub fn validate(&self, received_username: &str, received_password: &str) -> Result<bool, ()> {
+        println!("received_username: {}", received_username);
         if let Some(expected_password) = self.credentials.get(received_username) {
-            verify(received_password, expected_password)
+            if received_password == expected_password {
+                Ok(true)
+            } else {
+                Ok(false)
+            }
         } else {
             Ok(false)
         }
