@@ -16,6 +16,12 @@ getopts = "0.2"
 hyper = { version = "0.14", features = ["client", "server", "http1", "runtime"] }
 tokio = { version = "1", features = ["net", "rt-multi-thread", "macros", "io-util"] }
 rand = "0.8"
+bcrypt = "0.15.1"
+matches = "0.1.10"
+base64 = "0.22.0"
+dotenv = "0.15.0"
+
+
 
 
 [profile.release]

@@ -1,9 +1,12 @@
 mod proxy;
+mod auth;
 
 use cidr::Ipv6Cidr;
 use getopts::Options;
 use proxy::start_proxy;
 use std::{env, process::exit};
+use dotenv::dotenv;
+use auth::Auth;
 
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {} [options]", program);
@@ -11,6 +14,7 @@ fn print_usage(program: &str, opts: Options) {
 }
 
 fn main() {
+    dotenv().ok();
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
 
@@ -23,26 +27,30 @@ fn main() {
         "IPv6_SUBNET",
     );
     opts.optflag("h", "help", "print this help menu");
+
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
         Err(f) => {
             panic!("{}", f.to_string())
         }
     };
+
     if matches.opt_present("h") {
         print_usage(&program, opts);
         return;
     }
 
+    let auth = Auth::new().expect("Failed to load credentials");
+
     let bind_addr = matches.opt_str("b").unwrap_or("0.0.0.0:51080".to_string());
-    let ipve_subnet = matches
+    let ipv6_subnet = matches
         .opt_str("i")
         .unwrap_or("2001:19f0:6001:48e4::/64".to_string());
-    run(bind_addr, ipve_subnet)
+    run(bind_addr, ipv6_subnet, auth);
 }
 
 #[tokio::main]
-async fn run(bind_addr: String, ipv6_subnet: String) {
+async fn run(bind_addr: String, ipv6_subnet: String, auth: Auth) {
     let ipv6 = match ipv6_subnet.parse::<Ipv6Cidr>() {
         Ok(cidr) => {
             let a = cidr.first_address();
@@ -62,7 +70,8 @@ async fn run(bind_addr: String, ipv6_subnet: String) {
             return;
         }
     };
-    if let Err(e) = start_proxy(bind_addr, ipv6).await {
+
+    if let Err(e) = start_proxy(bind_addr, ipv6, auth).await {
         println!("{}", e);
     }
 }
